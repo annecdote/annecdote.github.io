@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nene — a thoughtful tarot reading</title>
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #faf8f3;
+    --card: #fffefa;
+    --ink: #29283a;
+    --muted: #777586;
+    --line: #e9e5dc;
+    --plum: #625176;
+    --plum-dark: #4c3d60;
+    --lilac: #eee8f3;
+    --rose: #bd7c78;
+    --sage: #738b7d;
+    --shadow: 0 18px 50px rgba(53, 44, 66, .08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 85% 4%, rgba(229, 218, 237, .42), transparent 30rem),
+      var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  button, textarea { font: inherit; }
+  button { color: inherit; }
+  button:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgba(98, 81, 118, .34);
+    outline-offset: 3px;
+  }
+
+  .shell { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+
+  .topbar {
+    min-height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(98, 81, 118, .12);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border: 0;
+    background: transparent;
+    padding: 8px 0;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d7ccdf;
+    border-radius: 50%;
+    color: var(--plum);
+    font-family: Georgia, serif;
+    font-size: 22px;
+    background: #f4eff6;
+  }
+
+  .brand-name { font-family: Georgia, "Times New Roman", serif; font-size: 25px; letter-spacing: -.04em; }
+  .brand-tag { color: var(--muted); font-size: 12px; margin-left: 2px; }
+
+  .nav { display: flex; gap: 8px; }
+  .nav-btn {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .nav-btn:hover { background: #f0ecf2; color: var(--ink); }
+  .nav-btn.active { background: var(--lilac); color: var(--plum-dark); font-weight: 650; }
+  .count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    margin-left: 5px;
+    border-radius: 20px;
+    background: rgba(98, 81, 118, .12);
+    font-size: 11px;
+  }
+
+  main { padding: 44px 0 54px; }
+  .screen[hidden] { display: none !important; }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1.25fr .75fr;
+    align-items: center;
+    gap: 34px;
+    margin-bottom: 30px;
+  }
+
+  .eyebrow {
+    color: var(--plum);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+  }
+
+  h1, h2, h3, p { margin-top: 0; }
+  h1 {
+    max-width: 630px;
+    margin: 12px 0 12px;
+    font: 400 clamp(38px, 5.3vw, 61px)/1.06 Georgia, "Times New Roman", serif;
+    letter-spacing: -.045em;
+  }
+  .hero-copy { max-width: 560px; margin: 0; color: var(--muted); line-height: 1.7; }
+
+  .art-wrap {
+    min-height: 205px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .art-orbit {
+    width: 170px;
+    height: 170px;
+    position: absolute;
+    border: 1px solid #ded5e3;
+    border-radius: 50%;
+  }
+  .art-orbit::before, .art-orbit::after {
+    content: "";
+    position: absolute;
+    border: 1px solid #e8dfe7;
+    border-radius: 50%;
+  }
+  .art-orbit::before { inset: 17px; }
+  .art-orbit::after { inset: 38px; }
+  .art-star {
+    position: absolute;
+    z-index: 1;
+    color: var(--rose);
+    font: 20px Georgia, serif;
+  }
+  .art-star.one { top: 13px; left: 23%; }
+  .art-star.two { right: 17%; bottom: 32px; font-size: 15px; color: var(--plum); }
+  .art-star.three { left: 16%; bottom: 50px; font-size: 12px; }
+  .art-card {
+    width: 93px;
+    height: 142px;
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ded3e4;
+    border-radius: 10px;
+    background: #f5f0f6;
+    box-shadow: 0 9px 22px rgba(54, 42, 65, .10);
+    color: var(--plum);
+    font: 37px Georgia, serif;
+  }
+  .art-card::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(98, 81, 118, .22);
+    border-radius: 6px;
+  }
+  .art-card.back { transform: translateX(-37px) rotate(-11deg); background: #f2eee6; color: #9f826f; }
+  .art-card.front { transform: translateX(30px) rotate(9deg); background: #f8f1ed; color: var(--rose); }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255, 254, 250, .88);
+    box-shadow: var(--shadow);
+  }
+
+  .form-panel { padding: clamp(22px, 4vw, 38px); }
+  .form-heading { margin-bottom: 24px; }
+  .form-heading h2 { margin: 0 0 6px; font: 400 25px Georgia, "Times New Roman", serif; letter-spacing: -.02em; }
+  .form-heading p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+  .field-label {
+    display: block;
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .topic-tabs { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 25px; }
+  .topic-btn {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    padding: 10px 16px;
+    cursor: pointer;
+    color: #666273;
+    transition: .18s ease;
+  }
+  .topic-btn:hover { border-color: #cbbbd7; }
+  .topic-btn.selected { color: var(--plum-dark); border-color: #c9bbd2; background: var(--lilac); font-weight: 650; }
+
+  .question-box {
+    display: block;
+    width: 100%;
+    min-height: 112px;
+    resize: vertical;
+    padding: 15px 16px;
+    border: 1px solid #e4dfd7;
+    border-radius: 13px;
+    background: #fff;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .question-box::placeholder { color: #aaa6b0; }
+  .input-meta { display: flex; justify-content: space-between; gap: 10px; margin-top: 7px; color: var(--muted); font-size: 11px; }
+
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 22px; }
+  .suggestion {
+    border: 1px solid #e8e3ec;
+    border-radius: 999px;
+    background: #fbf9fc;
+    color: #6e617a;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: .18s ease;
+  }
+  .suggestion:hover { background: var(--lilac); border-color: #d6c9df; }
+
+  .primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--plum);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 7px 16px rgba(98, 81, 118, .18);
+    transition: transform .18s ease, background .18s ease;
+  }
+  .primary:hover { background: var(--plum-dark); transform: translateY(-1px); }
+  .primary:disabled { opacity: .65; cursor: wait; transform: none; }
+  .arrow { font-size: 18px; font-weight: 400; }
+
+  .privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 18px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .privacy-note span:first-child { color: var(--sage); }
+
+  .how-it-works {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: var(--line);
+  }
+  .how-step { padding: 16px 18px; background: rgba(255,254,250,.92); }
+  .how-step strong { display: block; margin-bottom: 5px; font-size: 12px; }
+  .how-step span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+  .screen-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .screen-title-row h1 { font-size: clamp(34px, 5vw, 48px); margin: 9px 0 8px; }
+  .screen-title-row p { color: var(--muted); margin: 0; line-height: 1.6; }
+  .quiet-btn, .save-btn {
+    border: 1px solid var(--line);
+    background: #fffefa;
+    border-radius: 10px;
+    min-height: 42px;
+    padding: 0 14px;
+    cursor: pointer;
+    color: #635c6b;
+    transition: .18s ease;
+  }
+  .quiet-btn:hover, .save-btn:hover { border-color: #cbbbd7; background: #f8f5fa; }
+  .save-btn.saved { border-color: #b9c9bd; background: #eff5f0; color: #4c6a57; }
+
+  .question-context {
+    padding: 14px 17px;
+    border-left: 3px solid #c9b9d5;
+    border-radius: 0 10px 10px 0;
+    background: #f6f2f8;
+    color: #60586b;
+    margin-bottom: 22px;
+  }
+  .question-context small { display: block; margin-bottom: 4px; color: var(--plum); font-weight: 750; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; }
+  .question-context span { line-height: 1.55; }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 0 0 23px; }
+  .drawn-card {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255,254,250,.75);
+    animation: reveal .55s both;
+  }
+  .drawn-card:nth-child(2) { animation-delay: .12s; }
+  .drawn-card:nth-child(3) { animation-delay: .24s; }
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(10px) rotateX(8deg); }
+    to { opacity: 1; transform: translateY(0) rotateX(0); }
+  }
+  .card-face {
+    aspect-ratio: 3 / 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #ddd3e4;
+    border-radius: 11px;
+    padding: 13px 10px;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(255,255,255,.78), transparent 48%),
+      linear-gradient(145deg, #f1eaf4, #f8f3eb);
+    color: var(--plum-dark);
+  }
+  .card-face::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(98, 81, 118, .2);
+    border-radius: 7px;
+    pointer-events: none;
+  }
+  .card-number { align-self: flex-start; position: relative; font: 10px Georgia, serif; color: #8a7b92; }
+  .card-glyph { position: relative; font: 46px Georgia, serif; color: var(--plum); text-shadow: 0 3px 16px rgba(98,81,118,.13); }
+  .card-suit { position: relative; color: #8a7b92; font-size: 9px; letter-spacing: .11em; text-transform: uppercase; }
+  .card-caption { padding: 12px 3px 1px; }
+  .position-label { color: var(--plum); font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+  .card-name { margin: 5px 0 0; font: 18px Georgia, "Times New Roman", serif; }
+  .orientation {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 4px 8px;
+    border-radius: 99px;
+    background: #f1eee8;
+    color: #777080;
+    font-size: 10px;
+  }
+  .orientation.reversed { background: #f8ece8; color: #9c625d; }
+  .is-reversed .card-face { background: linear-gradient(145deg, #f4e9ec, #f6f0e9); }
+  .is-reversed .card-glyph { transform: rotate(180deg); }
+
+  .reading-panel { padding: clamp(22px, 4vw, 36px); }
+  .reading-topline { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 15px; }
+  .reading-topline h2 { margin: 0; font: 400 28px Georgia, "Times New Roman", serif; }
+  .reading-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border-radius: 99px;
+    background: #f2eef5;
+    color: var(--plum);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .reading-copy { color: #4e4b5a; font: 16px/1.8 Georgia, "Times New Roman", serif; }
+  .reading-copy p { margin: 0 0 13px; }
+  .reading-copy p:last-child { margin-bottom: 0; }
+  .reflection-box {
+    margin-top: 22px;
+    padding: 17px 19px;
+    border-radius: 12px;
+    background: #f5f1f6;
+  }
+  .reflection-box strong { display: block; margin-bottom: 6px; color: var(--plum-dark); font-size: 12px; }
+  .reflection-box p { margin: 0; color: #5f5967; line-height: 1.65; font-size: 14px; }
+
+  details.card-notes { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px; }
+  details.card-notes summary { cursor: pointer; color: var(--plum); font-size: 13px; font-weight: 650; }
+  .notes-list { display: grid; gap: 9px; margin-top: 14px; }
+  .note-row { padding: 12px 14px; border-radius: 10px; background: #faf8f4; }
+  .note-row strong { display: block; margin-bottom: 4px; font: 16px Georgia, serif; }
+  .note-row span { color: var(--muted); font-size: 13px; line-height: 1.55; }
+
+  .feedback {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 21px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .feedback span { margin-right: 5px; color: #6e6977; font-size: 12px; }
+  .feedback-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #6e6977;
+    font-size: 12px;
+  }
+  .feedback-btn:hover, .feedback-btn.chosen { background: #eff4ef; border-color: #c5d2c7; color: #4e6c57; }
+
+  .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .loading-panel {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .spinner {
+    width: 38px; height: 38px; margin: 0 auto 18px;
+    border: 2px solid #e7dfea; border-top-color: var(--plum);
+    border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-panel h2 { margin-bottom: 7px; font: 400 25px Georgia, serif; }
+  .loading-panel p { color: var(--muted); font-size: 14px; }
+
+  .history-heading { margin-bottom: 24px; }
+  .history-heading h1 { margin: 9px 0 8px; font-size: clamp(35px, 5vw, 48px); }
+  .history-heading p { margin: 0; color: var(--muted); line-height: 1.6; }
+  .history-list { display: grid; gap: 12px; }
+  .history-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: rgba(255,254,250,.9);
+  }
+  .history-open {
+    display: block; width: 100%; padding: 0; border: 0; background: transparent;
+    text-align: left; cursor: pointer;
+  }
+  .history-open strong { display: block; margin: 0 0 6px; font: 19px Georgia, serif; }
+  .history-question { display: block; overflow: hidden; color: #696575; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+  .history-meta { display: block; margin-top: 8px; color: #8b8792; font-size: 11px; }
+  .delete-btn { border: 0; background: transparent; color: #938d99; padding: 8px; cursor: pointer; }
+  .delete-btn:hover { color: #a45452; }
+  .empty-state { padding: 42px 22px; text-align: center; }
+  .empty-icon { color: #9c8da8; font: 34px Georgia, serif; }
+  .empty-state h2 { margin: 12px 0 7px; font: 400 25px Georgia, serif; }
+  .empty-state p { max-width: 390px; margin: 0 auto 17px; color: var(--muted); line-height: 1.6; font-size: 14px; }
+
+  footer {
+    padding: 20px 0 30px;
+    border-top: 1px solid rgba(98, 81, 118, .12);
+    color: #888391;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+  .footer-inner span:last-child { text-align: right; }
+
+  .toast {
+    position: fixed;
+    z-index: 10;
+    right: 20px;
+    bottom: 20px;
+    max-width: min(360px, calc(100% - 40px));
+    padding: 12px 16px;
+    border-radius: 11px;
+    background: #373142;
+    color: white;
+    box-shadow: 0 10px 28px rgba(30, 25, 38, .2);
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: .22s ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 700px) {
+    .shell { width: min(100% - 28px, 560px); }
+    .topbar { min-height: 70px; }
+    .brand-tag { display: none; }
+    .nav-btn { padding: 9px 11px; font-size: 12px; }
+    main { padding: 30px 0 38px; }
+    .hero { grid-template-columns: 1fr; gap: 3px; margin-bottom: 20px; }
+    .art-wrap { min-height: 142px; }
+    .art-orbit { width: 132px; height: 132px; }
+    .art-card { width: 74px; height: 112px; font-size: 30px; }
+    .how-it-works { grid-template-columns: 1fr; }
+    .how-step { padding: 13px 16px; }
+    .cards-grid { gap: 9px; }
+    .drawn-card { padding: 8px; }
+    .card-face { padding: 10px 7px; }
+    .card-glyph { font-size: 35px; }
+    .card-name { font-size: 15px; }
+    .position-label { font-size: 8px; letter-spacing: .07em; }
+    .reading-topline { align-items: flex-start; flex-direction: column; }
+    .screen-title-row { flex-direction: column; }
+    .footer-inner { flex-direction: column; gap: 5px; }
+    .footer-inner span:last-child { text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <button class="brand" id="brandHome" aria-label="Nene home">
+      <span class="brand-mark" aria-hidden="true">✳</span>
+      <span class="brand-name">nene</span>
+      <span class="brand-tag">a little room to reflect</span>
+    </button>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-btn active" id="navRead">New reading</button>
+      <button class="nav-btn" id="navHistory">Saved <span class="count" id="savedCount">0</span></button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="screen" id="formScreen">
+      <div class="hero">
+        <div>
+          <span class="eyebrow">A thoughtful three-card reading</span>
+          <h1>Make a little space<br>for your own knowing.</h1>
+          <p class="hero-copy">Bring a question. Nene reads the cards together as one story, so you can find a fresh perspective without being handed a fixed prediction.</p>
+        </div>
+        <div class="art-wrap" aria-hidden="true">
+          <span class="art-orbit"></span>
+          <span class="art-star one">✦</span>
+          <span class="art-star two">✧</span>
+          <span class="art-star three">·</span>
+          <span class="art-card back">☾</span>
+          <span class="art-card">✶</span>
+          <span class="art-card front">♡</span>
+        </div>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="form-heading">
+          <h2>What would you like perspective on?</h2>
+          <p>Choose an area, then ask the question that’s really on your mind.</p>
+        </div>
+
+        <label class="field-label" id="topicLabel">Choose a reading</label>
+        <div class="topic-tabs" role="group" aria-labelledby="topicLabel">
+          <button class="topic-btn selected" type="button" data-topic="Relationships" aria-pressed="true">♡ &nbsp;Relationships</button>
+          <button class="topic-btn" type="button" data-topic="Career & studies" aria-pressed="false">✦ &nbsp;Career &amp; studies</button>
+        </div>
+
+        <label class="field-label" for="question">Your question</label>
+        <textarea class="question-box" id="question" maxlength="400" placeholder="For example: What would help me feel clearer about this connection?"></textarea>
+        <div class="input-meta">
+          <span>Open questions tend to leave more room for reflection.</span>
+          <span id="charCount">0 / 400</span>
+        </div>
+
+        <div class="suggestions" id="suggestions">
+          <button type="button" class="suggestion">What should I pay attention to?</button>
+          <button type="button" class="suggestion">What might I not be seeing?</button>
+          <button type="button" class="suggestion">What’s one helpful next step?</button>
+        </div>
+
+        <button class="primary" id="drawButton" type="button">
+          Draw my cards <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="privacy-note"><span aria-hidden="true">●</span><span>Your question stays in this browser. A reading is a reflection tool, not a promise about what will happen.</span></p>
+      </div>
+
+      <div class="how-it-works" aria-label="How a reading works">
+        <div class="how-step"><strong>01 &nbsp;Bring a question</strong><span>Start with the area of life you want to explore.</span></div>
+        <div class="how-step"><strong>02 &nbsp;Draw three cards</strong><span>Each card adds a different part of the picture.</span></div>
+        <div class="how-step"><strong>03 &nbsp;See the whole story</strong><span>Nene connects the spread, then leaves the choices with you.</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="loadingScreen" hidden>
+      <div class="panel loading-panel">
+        <div>
+          <div class="spinner" aria-hidden="true"></div>
+          <h2>Giving the cards a shuffle…</h2>
+          <p>Taking a moment to bring the spread together.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen" hidden>
+      <div class="screen-title-row">
+        <div>
+          <span class="eyebrow" id="resultTopic">Your reading</span>
+          <h1>A story in three cards.</h1>
+          <p>Take what feels useful. Leave the rest.</p>
+        </div>
+        <button class="quiet-btn" id="backToForm" type="button">← New reading</button>
+      </div>
+
+      <div class="question-context">
+        <small>Your question</small>
+        <span id="questionDisplay"></span>
+      </div>
+
+      <div class="cards-grid" id="cardsGrid" aria-label="Your three cards"></div>
+
+      <div class="panel reading-panel">
+        <div class="reading-topline">
+          <h2>The thread between them</h2>
+          <span class="reading-label"><span aria-hidden="true">✧</span> One connected reading</span>
+        </div>
+        <div class="reading-copy" id="readingCopy"></div>
+        <div class="reflection-box">
+          <strong>A question to carry with you</strong>
+          <p id="reflectionQuestion"></p>
+        </div>
+
+        <details class="card-notes">
+          <summary>See how each card contributes</summary>
+          <div class="notes-list" id="cardNotes"></div>
+        </details>
+
+        <div class="feedback" aria-label="Reading feedback">
+          <span>Did this feel useful?</span>
+          <button class="feedback-btn" type="button" data-feedback="yes">That resonated</button>
+          <button class="feedback-btn" type="button" data-feedback="no">Not quite</button>
+        </div>
+
+        <div class="result-actions">
+          <button class="save-btn" id="saveButton" type="button">♡ &nbsp;Save this reading</button>
+          <button class="quiet-btn" id="anotherButton" type="button">Ask another question</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="historyScreen" hidden>
+      <div class="screen-title-row">
+        <div class="history-heading">
+          <span class="eyebrow">Your space</span>
+          <h1>Saved readings.</h1>
+          <p>Only readings you choose to save appear here, on this device.</p>
+        </div>
+        <button class="quiet-btn" id="historyNewReading" type="button">＋ New reading</button>
+      </div>
+      <div id="historyContent"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Nene is a reflection companion. Your choices remain yours.</span>
+      <span>Preview version: readings use a built-in card framework. Live AI readings and learning from feedback need a secure backend.</span>
+    </div>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const majorArcana = [
+    { title: "The Fool", glyph: "✧", focus: "curiosity and a fresh start", upright: "a fresh start that leaves room to learn as you go", reversed: "a fresh start that may need a little more care or preparation", prompt: "What could you try if you didn’t need to know the whole outcome first?", action: "take one small, low-pressure step toward what interests you" },
+    { title: "The Magician", glyph: "∞", focus: "using the resources already within reach", upright: "your ability to turn an idea into a deliberate action", reversed: "a talent or resource that may be overlooked or scattered", prompt: "What do you already have that could make this easier?", action: "choose one resource you can put to use today" },
+    { title: "The High Priestess", glyph: "☾", focus: "intuition, patience, and what is not yet said", upright: "a quieter truth that becomes clearer when you pause", reversed: "a feeling that may be hard to hear beneath the noise", prompt: "What do you sense before you start explaining it away?", action: "give yourself a little quiet before making a decision" },
+    { title: "The Empress", glyph: "❀", focus: "care, creativity, and room to grow", upright: "a part of life that can grow with attention and care", reversed: "care that may be depleted, uneven, or turned away from yourself", prompt: "What needs more care—and what needs less from you?", action: "make room for one thing that restores your energy" },
+    { title: "The Emperor", glyph: "⌂", focus: "structure, boundaries, and steady leadership", upright: "the value of a clear plan or a dependable boundary", reversed: "a structure that may feel too rigid or not supportive enough", prompt: "Which boundary or practical plan would help you feel steadier?", action: "name one clear limit or next step" },
+    { title: "The Hierophant", glyph: "☼", focus: "shared values, learning, and trusted guidance", upright: "the influence of a tradition, teacher, or shared value", reversed: "a rule or expectation worth questioning for yourself", prompt: "Which beliefs are truly yours, and which did you inherit?", action: "seek advice from someone whose judgment you trust" },
+    { title: "The Lovers", glyph: "♡", focus: "values, connection, and a meaningful choice", upright: "a choice that asks you to stay close to your values", reversed: "a gap between what you value and what is happening", prompt: "What choice would feel most honest to the person you want to be?", action: "say clearly what matters to you" },
+    { title: "The Chariot", glyph: "↗", focus: "direction, persistence, and self-guidance", upright: "progress that comes from choosing a direction and staying with it", reversed: "energy pulling in different directions or moving too fast", prompt: "Where would focus help more than pushing harder?", action: "pick one priority and give it your attention first" },
+    { title: "Strength", glyph: "♧", focus: "patience, courage, and gentle self-control", upright: "a kind of courage that can be calm rather than forceful", reversed: "self-doubt or pressure that may be taking more energy than it gives", prompt: "What would a patient response look like here?", action: "meet the situation with one calm, steady response" },
+    { title: "The Hermit", glyph: "✦", focus: "reflection, space, and your own perspective", upright: "a need for space to hear your own perspective", reversed: "a wish for space that could become isolation", prompt: "What do you know when you get a moment away from everyone else’s opinions?", action: "take a pause, then reconnect with someone you trust" },
+    { title: "Wheel of Fortune", glyph: "◎", focus: "change, timing, and what you can influence", upright: "a changing situation with parts you can and cannot control", reversed: "frustration with timing or a pattern that keeps repeating", prompt: "Which part of this is yours to influence right now?", action: "focus on the next choice you can actually make" },
+    { title: "Justice", glyph: "⚖", focus: "fairness, accountability, and clear-eyed choices", upright: "the importance of looking at the facts and being fair to yourself", reversed: "an imbalance or missing piece that deserves an honest look", prompt: "What would a fair view of this include—for you and everyone involved?", action: "separate what you know from what you are assuming" },
+    { title: "The Hanged One", glyph: "⟲", focus: "a pause, a new angle, and letting a question breathe", upright: "a pause that may reveal a perspective you have not considered", reversed: "waiting that may be starting to cost more than it offers", prompt: "What changes if you look at this from another person’s point of view?", action: "try a new angle before deciding what the pause means" },
+    { title: "Death", glyph: "↻", focus: "an ending, a transition, and making room for change", upright: "a transition that asks you to release an outdated version of things", reversed: "a change you may be resisting or not yet ready to name", prompt: "What are you holding onto because it is familiar, not because it fits?", action: "identify one thing that is ready to change" },
+    { title: "Temperance", glyph: "≈", focus: "balance, patience, and bringing things together", upright: "a gradual adjustment that can make the whole situation feel more balanced", reversed: "an area of life that may need a gentler pace or a better balance", prompt: "What could become easier if you adjusted the pace?", action: "make one small adjustment instead of forcing a quick fix" },
+    { title: "The Devil", glyph: "◇", focus: "attachment, pressure, and reclaiming choice", upright: "a habit or pressure that may be narrowing your sense of choice", reversed: "a chance to notice a pattern and loosen its hold", prompt: "Where do you have more choice than it currently feels like?", action: "notice the pattern without judging yourself, then choose one small change" },
+    { title: "The Tower", glyph: "ϟ", focus: "a disruption, an honest realization, and what is solid", upright: "a realization that may change how you understand the situation", reversed: "tension that may be building quietly and asking for attention", prompt: "What truth would help you make a more grounded choice?", action: "start with what is known and steady, then address one thing at a time" },
+    { title: "The Star", glyph: "✶", focus: "renewal, hope, and a longer view", upright: "a reason to stay open to repair, possibility, or renewed energy", reversed: "hope that may need practical support to feel reachable", prompt: "What would help hope feel grounded in real life?", action: "choose one small action that supports the future you want" },
+    { title: "The Moon", glyph: "☽", focus: "uncertainty, feelings, and checking assumptions", upright: "a situation where feelings are real but some details may still be unclear", reversed: "a chance to separate a fear from what you have actually observed", prompt: "What do you know for sure, and what are you filling in?", action: "ask a clear question before treating a guess as a fact" },
+    { title: "The Sun", glyph: "☼", focus: "clarity, warmth, and enjoying what is working", upright: "a moment of clarity or connection worth noticing", reversed: "good things that may be harder to feel under stress or high expectations", prompt: "What is going well that you have not let yourself take in?", action: "make time to notice what is already working" },
+    { title: "Judgement", glyph: "↑", focus: "reflection, renewal, and responding to what you have learned", upright: "a chance to respond differently because you know more now", reversed: "an old judgment or regret that may be keeping you stuck", prompt: "What would you do differently now that you know what you know?", action: "use what you have learned without punishing your past self" },
+    { title: "The World", glyph: "◉", focus: "completion, integration, and seeing the larger picture", upright: "a cycle coming together and a chance to recognize your progress", reversed: "a loose end or unfinished step asking for a little attention", prompt: "What progress deserves to be acknowledged before you move on?", action: "name what is complete and what one remaining step would close the loop" }
+  ];
+
+  const suits = [
+    { name: "Wands", glyph: "✦", focus: "drive, confidence, and the energy behind a choice", prompt: "What would change if you acted from what you want instead of pressure?", action: "take one small action that tests your interest" },
+    { name: "Cups", glyph: "♡", focus: "feelings, connection, and what is being offered or received", prompt: "What feeling is asking to be heard, and what does it need from you?", action: "name the feeling or boundary you want to bring into the conversation" },
+    { name: "Swords", glyph: "⌁", focus: "thoughts, communication, and the stories around a situation", prompt: "What do you know, and what are you currently assuming?", action: "ask one clear question before drawing a conclusion" },
+    { name: "Pentacles", glyph: "✿", focus: "time, effort, security, and what is taking shape in real life", prompt: "What practical step is possible with the time and support you have?", action: "choose one practical step you can complete this week" }
+  ];
+
+  const ranks = [
+    ["Ace", "a new opening"],
+    ["Two", "a choice that asks for balance"],
+    ["Three", "progress built with support"],
+    ["Four", "a pause to establish stability"],
+    ["Five", "a challenge that reveals what matters"],
+    ["Six", "an exchange moving toward balance"],
+    ["Seven", "a choice that rewards patience"],
+    ["Eight", "focused effort becoming a practice"],
+    ["Nine", "confidence growing from what you have built"],
+    ["Ten", "a milestone and the responsibilities it brings"],
+    ["Page", "curiosity before certainty"],
+    ["Knight", "momentum that needs direction"],
+    ["Queen", "care guided by self-trust"],
+    ["King", "confident stewardship"]
+  ];
+
+  const deck = [
+    ...majorArcana.map((card, i) => ({ ...card, number: i + 0, suit: "Major Arcana", isMajor: true })),
+    ...suits.flatMap((suit, suitIndex) => ranks.map(([rank, theme], rankIndex) => ({
+      title: `${rank} of ${suit.name}`,
+      glyph: suit.glyph,
+      number: rankIndex + 1,
+      suit: suit.name,
+      focus: suit.focus,
+      theme,
+      upright: `${theme} in ${suit.focus}`,
+      reversed: `the less visible or more complicated side of ${theme} in ${suit.focus}`,
+      prompt: suit.prompt,
+      action: suit.action,
+      isMajor: false,
+      suitIndex
+    })))
+  ];
+
+  const positions = ["What’s behind this", "What’s active now", "A useful next step"];
+  let topic = "Relationships";
+  let currentReading = null;
+  let toastTimer;
+
+  const $ = (selector) => document.querySelector(selector);
+  const all = (selector) => [...document.querySelectorAll(selector)];
+
+  function getSaved() {
+    try { return JSON.parse(localStorage.getItem("nene-saved-readings") || "[]"); }
+    catch { return []; }
+  }
+
+  function writeSaved(items) {
+    try {
+      localStorage.setItem("nene-saved-readings", JSON.stringify(items));
+      updateSavedCount();
+      return true;
+    } catch {
+      showToast("Your browser couldn’t save this reading. Try again or check its storage settings.");
+      return false;
+    }
+  }
+
+  function updateSavedCount() {
+    $("#savedCount").textContent = String(getSaved().length);
+  }
+
+  function setScreen(screenId) {
+    all(".screen").forEach((screen) => { screen.hidden = screen.id !== screenId; });
+    $("#navRead").classList.toggle("active", screenId !== "historyScreen");
+    $("#navHistory").classList.toggle("active", screenId === "historyScreen");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showToast(message) {
+    const toast = $("#toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+  }
+
+  function randomNumber(max) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      const value = new Uint32Array(1);
+      window.crypto.getRandomValues(value);
+      return Math.floor((value[0] / 4294967296) * max);
+    }
+    return Math.floor(Math.random() * max);
+  }
+
+  function shuffle(array) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = randomNumber(i + 1);
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function makeSpread() {
+    return shuffle(deck).slice(0, 3).map((card, index) => ({
+      ...card,
+      position: positions[index],
+      reversed: randomNumber(100) < 27
+    }));
+  }
+
+  function essence(card) {
+    return card.reversed ? card.reversed : card.upright;
+  }
+
+  function makeInterpretation(cards, selectedTopic) {
+    const [past, present, next] = cards;
+    const relationship = selectedTopic === "Relationships";
+    const area = relationship ? "care and effort" : "your energy and practical reality";
+    const bridge = relationship
+      ? "notice where care and effort feel mutual, and where a clearer conversation could help"
+      : "notice which option fits both your energy and the practical reality of your life";
+    const reversedCount = cards.filter((card) => card.reversed).length;
+
+    const paragraphs = [
+      `The story opens with ${essence(past)} in the background. At the center, ${essence(present)} seems to be asking for your attention. The final card offers ${essence(next)} as one possible direction.`,
+      `Taken together, the spread moves from what has shaped this question, through what is active now, toward a choice you can explore next. Rather than treating it as a fixed answer, use it to notice ${bridge}.`,
+      `A grounded next step is to ${next.action}. You don’t have to solve the whole situation today.`
+    ];
+
+    if (reversedCount > 0) {
+      paragraphs.splice(1, 0, "A reversed card isn’t a bad sign. It can point to energy that’s quieter, delayed, or asking for a different approach.");
+    }
+
+    return {
+      paragraphs,
+      reflection: present.prompt,
+      cards
+    };
+  }
+
+  function createReading() {
+    const cards = makeSpread();
+    const interpretation = makeInterpretation(cards, topic);
+    return {
+      id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      topic,
+      question: $("#question").value.trim(),
+      cards,
+      paragraphs: interpretation.paragraphs,
+      reflection: interpretation.reflection,
+      createdAt: new Date().toISOString(),
+      feedback: null,
+      saved: false
+    };
+  }
+
+  function makeCardElement(card, index) {
+    const article = document.createElement("article");
+    article.className = `drawn-card${card.reversed ? " is-reversed" : ""}`;
+    article.style.animationDelay = `${index * 0.12}s`;
+
+    const face = document.createElement("div");
+    face.className = "card-face";
+    face.setAttribute("aria-label", `${card.title}${card.reversed ? ", reversed" : ""}`);
+
+    const number = document.createElement("span");
+    number.className = "card-number";
+    number.textContent = card.isMajor ? String(card.number + 1).padStart(2, "0") : String(card.number).padStart(2, "0");
+
+    const glyph = document.createElement("span");
+    glyph.className = "card-glyph";
+    glyph.setAttribute("aria-hidden", "true");
+    glyph.textContent = card.glyph;
+
+    const suit = document.createElement("span");
+    suit.className = "card-suit";
+    suit.textContent = card.suit;
+
+    face.append(number, glyph, suit);
+
+    const caption = document.createElement("div");
+    caption.className = "card-caption";
+
+    const position = document.createElement("span");
+    position.className = "position-label";
+    position.textContent = card.position;
+
+    const name = document.createElement("h3");
+    name.className = "card-name";
+    name.textContent = card.title;
+
+    const orientation = document.createElement("span");
+    orientation.className = `orientation${card.reversed ? " reversed" : ""}`;
+    orientation.textContent = card.reversed ? "Reversed" : "Upright";
+
+    caption.append(position, name, orientation);
+    article.append(face, caption);
+    return article;
+  }
+
+  function renderReading(reading) {
+    currentReading = reading;
+    $("#resultTopic").textContent = reading.topic;
+    $("#questionDisplay").textContent = `“${reading.question}”`;
+
+    const grid = $("#cardsGrid");
+    grid.replaceChildren(...reading.cards.map((card, index) => makeCardElement(card, index)));
+
+    const copy = $("#readingCopy");
+    copy.replaceChildren(...reading.paragraphs.map((paragraph) => {
+      const p = document.createElement("p");
+      p.textContent = paragraph;
+      return p;
+    }));
+
+    $("#reflectionQuestion").textContent = reading.reflection;
+
+    const notes = $("#cardNotes");
+    notes.replaceChildren(...reading.cards.map((card) => {
+      const row = document.createElement("div");
+      row.className = "note-row";
+      const title = document.createElement("strong");
+      title.textContent = `${card.position}: ${card.title}${card.reversed ? " (reversed)" : ""}`;
+      const text = document.createElement("span");
+      text.textContent = essence(card);
+      row.append(title, text);
+      return row;
+    }));
+
+    all(".feedback-btn").forEach((button) => {
+      button.classList.toggle("chosen", button.dataset.feedback === reading.feedback);
+      button.setAttribute("aria-pressed", String(button.dataset.feedback === reading.feedback));
+    });
+
+    const saved = getSaved().some((item) => item.id === reading.id);
+    reading.saved = saved;
+    const saveButton = $("#saveButton");
+    saveButton.classList.toggle("saved", saved);
+    saveButton.textContent = saved ? "✓  Saved on this device" : "♡  Save this reading";
+
+    setScreen("resultScreen");
+  }
+
+  function saveCurrentReading() {
+    if (!currentReading) return;
+    const items = getSaved();
+    const alreadySaved = items.some((item) => item.id === currentReading.id);
+    if (alreadySaved) {
+      const updated = items.map((item) => item.id === currentReading.id ? currentReading : item);
+      if (writeSaved(updated)) showToast("Your reading is saved on this device.");
+    } else {
+      items.unshift({ ...currentReading, saved: true });
+      if (writeSaved(items)) {
+        currentReading.saved = true;
+        $("#saveButton").classList.add("saved");
+        $("#saveButton").textContent = "✓  Saved on this device";
+        showToast("Saved. You can find it in your reading history.");
+      }
+    }
+  }
+
+  function setFeedback(value) {
+    if (!currentReading) return;
+    currentReading.feedback = value;
+    all(".feedback-btn").forEach((button) => {
+      const chosen = button.dataset.feedback === value;
+      button.classList.toggle("chosen", chosen);
+      button.setAttribute("aria-pressed", String(chosen));
+    });
+    const items = getSaved();
+    const index = items.findIndex((item) => item.id === currentReading.id);
+    if (index >= 0) {
+      items[index] = { ...currentReading, saved: true };
+      writeSaved(items);
+      showToast("Thanks. Your feedback is saved with this reading.");
+    } else {
+      showToast("Thanks for letting Nene know.");
+    }
+  }
+
+  function openHistoryItem(id) {
+    const item = getSaved().find((reading) => reading.id === id);
+    if (item) renderReading(item);
+  }
+
+  function renderHistory() {
+    const content = $("#historyContent");
+    const items = getSaved().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    updateSavedCount();
+
+    if (!items.length) {
+      const empty = document.createElement("div");
+      empty.className = "panel empty-state";
+      const icon = document.createElement("div");
+      icon.className = "empty-icon";
+      icon.textContent = "✧";
+      const heading = document.createElement("h2");
+      heading.textContent = "Your saved readings will live here.";
+      const text = document.createElement("p");
+      text.textContent = "After a reading, choose “Save this reading” to keep it in this browser.";
+      const button = document.createElement("button");
+      button.className = "primary";
+      button.type = "button";
+      button.textContent = "Start a reading";
+      button.addEventListener("click", () => setScreen("formScreen"));
+      empty.append(icon, heading, text, button);
+      content.replaceChildren(empty);
+      return;
+    }
+
+    const list = document.createElement("div");
+    list.className = "history-list";
+
+    items.forEach((item) => {
+      const row = document.createElement("article");
+      row.className = "history-item";
+
+      const open = document.createElement("button");
+      open.className = "history-open";
+      open.type = "button";
+      open.addEventListener("click", () => openHistoryItem(item.id));
+
+      const title = document.createElement("strong");
+      title.textContent = item.topic;
+      const question = document.createElement("span");
+      question.className = "history-question";
+      question.textContent = item.question;
+      const meta = document.createElement("span");
+      meta.className = "history-meta";
+      const date = new Date(item.createdAt);
+      meta.textContent = `${Number.isNaN(date.getTime()) ? "Saved reading" : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })} · ${item.cards.map((card) => card.title).join(" · ")}`;
+      open.append(title, question, meta);
+
+      const del = document.createElement("button");
+      del.className = "delete-btn";
+      del.type = "button";
+      del.setAttribute("aria-label", `Delete saved reading: ${item.question}`);
+      del.textContent = "Remove";
+      del.addEventListener("click", () => {
+        const remaining = getSaved().filter((saved) => saved.id !== item.id);
+        writeSaved(remaining);
+        renderHistory();
+        showToast("Reading removed from this device.");
+      });
+
+      row.append(open, del);
+      list.append(row);
+    });
+
+    content.replaceChildren(list);
+  }
+
+  all(".topic-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      topic = button.dataset.topic;
+      all(".topic-btn").forEach((other) => {
+        const selected = other === button;
+        other.classList.toggle("selected", selected);
+        other.setAttribute("aria-pressed", String(selected));
+      });
+      $("#question").placeholder = topic === "Relationships"
+        ? "For example: What would help me feel clearer about this connection?"
+        : "For example: What should I consider before choosing my next step?";
+    });
+  });
+
+  $("#question").addEventListener("input", (event) => {
+    $("#charCount").textContent = `${event.target.value.length} / 400`;
+  });
+
+  all(".suggestion").forEach((button) => {
+    button.addEventListener("click", () => {
+      $("#question").value = button.textContent;
+      $("#question").dispatchEvent(new Event("input"));
+      $("#question").focus();
+    });
+  });
+
+  $("#drawButton").addEventListener("click", () => {
+    const question = $("#question").value.trim();
+    if (!question) {
+      $("#question").focus();
+      showToast("Add a question first, and Nene will draw your cards.");
+      return;
+    }
+    const button = $("#drawButton");
+    button.disabled = true;
+    currentReading = createReading();
+    setScreen("loadingScreen");
+    setTimeout(() => {
+      renderReading(currentReading);
+      button.disabled = false;
+    }, 650);
+  });
+
+  $("#saveButton").addEventListener("click", saveCurrentReading);
+  all(".feedback-btn").forEach((button) => button.addEventListener("click", () => setFeedback(button.dataset.feedback)));
+  $("#backToForm").addEventListener("click", () => setScreen("formScreen"));
+  $("#anotherButton").addEventListener("click", () => {
+    $("#question").value = "";
+    $("#charCount").textContent = "0 / 400";
+    setScreen("formScreen");
+    $("#question").focus();
+  });
+  $("#navRead").addEventListener("click", () => setScreen("formScreen"));
+  $("#brandHome").addEventListener("click", () => setScreen("formScreen"));
+  $("#navHistory").addEventListener("click", () => {
+    renderHistory();
+    setScreen("historyScreen");
+  });
+  $("#historyNewReading").addEventListener("click", () => setScreen("formScreen"));
+
+  updateSavedCount();
+})();
+</script>
+</body>
+</html>

@@ -8,7 +8,6 @@
   :root {
     color-scheme: light;
     --paper: #faf8f3;
-    --card: #fffefa;
     --ink: #29283a;
     --muted: #777586;
     --line: #e9e5dc;
@@ -442,14 +441,175 @@
     text-align: center;
     padding: 40px 20px;
   }
-  .spinner {
-    width: 38px; height: 38px; margin: 0 auto 18px;
-    border: 2px solid #e7dfea; border-top-color: var(--plum);
-    border-radius: 50%; animation: spin .8s linear infinite;
+  .shuffle-stack {
+    width: 72px;
+    height: 100px;
+    position: relative;
+    margin: 0 auto 24px;
+    perspective: 500px;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .shuffle-card {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d9cde0;
+    border-radius: 9px;
+    background: #f4eff6;
+    box-shadow: 0 8px 18px rgba(53, 44, 66, .12);
+    color: var(--plum);
+    font: 28px Georgia, serif;
+    animation: shuffle-card .75s ease-in-out infinite alternate;
+  }
+  .shuffle-card:nth-child(2) { background: #f6f0e9; animation-delay: -.25s; }
+  .shuffle-card:nth-child(3) { background: #f8f1ed; animation-delay: -.5s; }
+  @keyframes shuffle-card {
+    from { transform: translateX(-13px) rotateY(-12deg) rotate(-8deg); }
+    to { transform: translateX(13px) rotateY(12deg) rotate(8deg); }
+  }
   .loading-panel h2 { margin-bottom: 7px; font: 400 25px Georgia, serif; }
   .loading-panel p { color: var(--muted); font-size: 14px; }
+
+  .spread-intro { margin-bottom: 18px; }
+  .spread-intro h1 { font-size: clamp(34px, 5vw, 48px); margin: 9px 0 8px; }
+  .spread-intro p { margin: 0; color: var(--muted); line-height: 1.6; }
+  .spread-progress {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 15px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .spread-progress strong { color: var(--plum-dark); font-size: 14px; }
+  .spread-progress span { max-width: 68%; text-align: right; }
+  .spread-scroll {
+    position: relative;
+    left: 50%;
+    width: min(calc(100vw - 24px), 1280px);
+    height: var(--carousel-height, 340px);
+    transform: translateX(-50%);
+    overflow: hidden;
+    perspective: var(--carousel-perspective, 1000px);
+    perspective-origin: 50% 46%;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .spread-scroll.is-dragging { cursor: grabbing; }
+  .spread-scroll.is-dragging .spread-card { transition: none; }
+  .spread-grid {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    margin: 0;
+    transform-style: preserve-3d;
+  }
+  .spread-scroll:focus-visible { outline: 3px solid rgba(98, 81, 118, .34); outline-offset: 4px; }
+  .spread-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: var(--carousel-layer, 1);
+    width: var(--card-width);
+    height: var(--card-height);
+    padding: 0;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    cursor: pointer;
+    perspective: 800px;
+    transform: translate(-50%, -50%) translate3d(var(--carousel-x, 0px), 0, var(--carousel-z, 0px)) rotateY(var(--carousel-angle, 0deg)) scale(var(--carousel-scale, 1));
+    transform-origin: center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition: transform .48s cubic-bezier(.2, .75, .25, 1), opacity .24s ease;
+    opacity: 0;
+    pointer-events: none;
+    animation: deal-card .42s both;
+    animation-delay: var(--deal-delay, 0ms);
+  }
+  .spread-card:hover:not(:disabled) .spread-card-back,
+  .spread-card:focus-visible .spread-card-back { border-color: #a898b8; }
+  .spread-card.is-active { z-index: 1000 !important; }
+  .spread-card.is-lifting { z-index: 1001 !important; transform: translate(-50%, -50%) translate3d(var(--carousel-x, 0px), 0, calc(var(--carousel-z, 0px) + 32px)) rotateY(var(--carousel-angle, 0deg)) scale(var(--carousel-scale, 1)); }
+  .spread-card.is-lifting .spread-card-inner { transition-delay: .12s; }
+  .spread-card.is-exiting {
+    z-index: 1002 !important;
+    opacity: 0 !important;
+    pointer-events: none;
+    transform: translate(-50%, -50%) translate3d(var(--carousel-x, 0px), 250px, calc(var(--carousel-z, 0px) - 60px)) rotateY(var(--carousel-angle, 0deg)) scale(.76);
+    transition: transform .68s cubic-bezier(.22, .72, .24, 1), opacity .58s ease;
+  }
+  .spread-card:disabled:not(.is-selected) { cursor: default; opacity: .48; }
+  .spread-card-inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .62s cubic-bezier(.16, 1, .3, 1);
+  }
+  .spread-card.is-selected .spread-card-inner { transform: rotateY(180deg); }
+  .spread-card-back, .spread-card-front {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    border: 1px solid #ddd3e4;
+    border-radius: 10px;
+    padding: 12px 8px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .spread-card-back {
+    justify-content: center;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.55), transparent 52%),
+      linear-gradient(145deg, #f1eaf4, #f8f3eb);
+    color: var(--plum);
+    box-shadow: 0 7px 16px rgba(53, 44, 66, .08);
+  }
+  .spread-card-back::before, .spread-card-back::after {
+    content: "";
+    position: absolute;
+    border: 1px solid rgba(98, 81, 118, .22);
+    border-radius: 7px;
+    pointer-events: none;
+  }
+  .spread-card-back::before { inset: 6px; }
+  .spread-card-back::after { inset: 12px; }
+  .spread-card-back span { position: relative; z-index: 1; font: 27px Georgia, serif; }
+  .spread-card-front {
+    transform: rotateY(180deg);
+    justify-content: center;
+    gap: 8px;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(255,255,255,.78), transparent 48%),
+      linear-gradient(145deg, #f1eaf4, #f8f3eb);
+    color: var(--plum-dark);
+    text-align: center;
+  }
+  .spread-card-front::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(98, 81, 118, .2);
+    border-radius: 7px;
+    pointer-events: none;
+  }
+  .spread-title, .spread-glyph { position: relative; z-index: 1; }
+  .spread-glyph { color: var(--plum); font: clamp(25px, 3.2vw, 38px) Georgia, serif; }
+  .spread-title { font: clamp(10px, 1.1vw, 13px)/1.25 Georgia, "Times New Roman", serif; }
+  @keyframes deal-card {
+    from { translate: 0 12px; }
+    to { translate: 0 0; }
+  }
 
   .history-heading { margin-bottom: 24px; }
   .history-heading h1 { margin: 9px 0 8px; font-size: clamp(35px, 5vw, 48px); }
@@ -526,6 +686,12 @@
     .card-glyph { font-size: 35px; }
     .card-name { font-size: 15px; }
     .position-label { font-size: 8px; letter-spacing: .07em; }
+    .spread-card-back, .spread-card-front { padding: 9px 5px; }
+    .spread-card-back span { font-size: 24px; }
+    .spread-glyph { font-size: 30px; }
+    .spread-title { font-size: 11px; }
+    .spread-progress { align-items: flex-start; flex-direction: column; gap: 4px; }
+    .spread-progress span { max-width: 100%; text-align: left; }
     .reading-topline { align-items: flex-start; flex-direction: column; }
     .screen-title-row { flex-direction: column; }
     .footer-inner { flex-direction: column; gap: 5px; }
@@ -534,6 +700,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    .shuffle-card { animation: none; }
   }
 </style>
 </head>
@@ -596,14 +763,14 @@
         </div>
 
         <button class="primary" id="drawButton" type="button">
-          Draw my cards <span class="arrow" aria-hidden="true">→</span>
+          Shuffle &amp; choose cards <span class="arrow" aria-hidden="true">→</span>
         </button>
         <p class="privacy-note"><span aria-hidden="true">●</span><span>Your question stays in this browser. A reading is a reflection tool, not a promise about what will happen.</span></p>
       </div>
 
       <div class="how-it-works" aria-label="How a reading works">
         <div class="how-step"><strong>01 &nbsp;Bring a question</strong><span>Start with the area of life you want to explore.</span></div>
-        <div class="how-step"><strong>02 &nbsp;Draw three cards</strong><span>Each card adds a different part of the picture.</span></div>
+        <div class="how-step"><strong>02 &nbsp;Choose three cards</strong><span>Pick from the shared spread; each choice finds its place in the reading.</span></div>
         <div class="how-step"><strong>03 &nbsp;See the whole story</strong><span>Nene connects the spread, then leaves the choices with you.</span></div>
       </div>
     </section>
@@ -611,10 +778,37 @@
     <section class="screen" id="loadingScreen" hidden>
       <div class="panel loading-panel">
         <div>
-          <div class="spinner" aria-hidden="true"></div>
-          <h2>Giving the cards a shuffle…</h2>
-          <p>Taking a moment to bring the spread together.</p>
+          <div class="shuffle-stack" aria-hidden="true">
+            <span class="shuffle-card">✧</span>
+            <span class="shuffle-card">☾</span>
+            <span class="shuffle-card">✶</span>
+          </div>
+          <h2>Shuffling the deck…</h2>
+          <p>Then you’ll choose three cards from the spread.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="screen" id="pickScreen" hidden>
+      <div class="screen-title-row">
+        <div class="spread-intro">
+          <h1>Choose three cards.</h1>
+          <p>Swipe to rotate through the deck. Tap a side card to center it, then tap the center card to choose it.</p>
+        </div>
+        <button class="quiet-btn" id="changeQuestion" type="button">← Change question</button>
+      </div>
+
+      <div class="question-context">
+        <small>Your question</small>
+        <span id="spreadQuestionDisplay"></span>
+      </div>
+
+      <div class="spread-progress" aria-live="polite" aria-atomic="true">
+        <strong id="pickCount">0 of 3 chosen</strong>
+        <span id="pickInstructions">Choose any three face-down cards.</span>
+      </div>
+      <div class="spread-scroll" id="spreadViewport" tabindex="0" role="region" aria-label="Swipe or drag to rotate through all 78 face-down cards">
+        <div class="spread-grid" id="spreadGrid" role="group" aria-label="Choose three cards from the 78-card spread"></div>
       </div>
     </section>
 
@@ -759,6 +953,16 @@
   const positions = ["What’s behind this", "What’s active now", "A useful next step"];
   let topic = "Relationships";
   let currentReading = null;
+  let spreadCards = [];
+  let selectedCards = [];
+  let activeIndex = 0;
+  let carouselPosition = 0;
+  let renderedCarouselCards = new Set();
+  let spreadCardElements = [];
+  let removedCarouselIndices = new Set();
+  let carouselAnimating = false;
+  let renderedActiveIndex = -1;
+  let pendingReadingContext = null;
   let toastTimer;
 
   const $ = (selector) => document.querySelector(selector);
@@ -818,9 +1022,10 @@
   }
 
   function makeSpread() {
-    return shuffle(deck).slice(0, 3).map((card, index) => ({
+    const shuffledDeck = shuffle(deck);
+    return shuffledDeck.map((card, index) => ({
       ...card,
-      position: positions[index],
+      fanPosition: index + 1,
       reversed: randomNumber(100) < 27
     }));
   }
@@ -832,7 +1037,6 @@
   function makeInterpretation(cards, selectedTopic) {
     const [past, present, next] = cards;
     const relationship = selectedTopic === "Relationships";
-    const area = relationship ? "care and effort" : "your energy and practical reality";
     const bridge = relationship
       ? "notice where care and effort feel mutual, and where a clearer conversation could help"
       : "notice which option fits both your energy and the practical reality of your life";
@@ -855,13 +1059,12 @@
     };
   }
 
-  function createReading() {
-    const cards = makeSpread();
-    const interpretation = makeInterpretation(cards, topic);
+  function createReading(cards) {
+    const interpretation = makeInterpretation(cards, pendingReadingContext.topic);
     return {
       id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      topic,
-      question: $("#question").value.trim(),
+      topic: pendingReadingContext.topic,
+      question: pendingReadingContext.question,
       cards,
       paragraphs: interpretation.paragraphs,
       reflection: interpretation.reflection,
@@ -869,6 +1072,322 @@
       feedback: null,
       saved: false
     };
+  }
+
+  function layoutSpreadCards() {
+    const compact = window.matchMedia("(max-width: 700px)").matches;
+    const viewport = $("#spreadViewport");
+    const cards = all("#spreadGrid .spread-card");
+    if (!cards.length || !viewport.clientWidth) return;
+    const cardWidth = compact
+      ? Math.max(108, Math.min(158, viewport.clientWidth * 0.4))
+      : Math.max(190, Math.min(256, viewport.clientWidth * 0.22));
+    const spacing = cardWidth * 0.52;
+    const cardHeight = cardWidth * 1.65;
+
+    viewport.style.setProperty("--carousel-perspective", compact ? "1100px" : "1300px");
+    viewport.style.setProperty("--carousel-height", `${Math.max(compact ? 310 : 390, cardHeight + (compact ? 78 : 92))}px`);
+    viewport.style.setProperty("--carousel-spacing", `${spacing}px`);
+    viewport.style.setProperty("--card-width", `${cardWidth}px`);
+    viewport.style.setProperty("--card-height", `${cardHeight}px`);
+    updateCarouselCards();
+  }
+
+  function getAvailableCarouselIndices() {
+    return spreadCards
+      .map((_, index) => index)
+      .filter((index) => !removedCarouselIndices.has(index));
+  }
+
+  function wrapCarouselIndex(index, count) {
+    return count ? ((index % count) + count) % count : 0;
+  }
+
+  function getCarouselOffset(slot, position, count) {
+    let offset = slot - position;
+    if (offset > count / 2) offset -= count;
+    if (offset < -count / 2) offset += count;
+    return offset;
+  }
+
+  function updateCarouselCards() {
+    const grid = $("#spreadGrid");
+    if (!grid || !grid.clientWidth) return;
+    const cards = spreadCardElements;
+    if (!cards.length) return;
+    const availableIndices = getAvailableCarouselIndices();
+    const availableCount = availableIndices.length;
+    if (!availableCount) return;
+    const viewport = $("#spreadViewport");
+    const compact = window.matchMedia("(max-width: 700px)").matches;
+    const spacing = Number.parseFloat(viewport.style.getPropertyValue("--carousel-spacing"));
+    const cardWidth = Number.parseFloat(viewport.style.getPropertyValue("--card-width"));
+    const visibleRange = 4;
+    const curveStep = compact ? 31 : 28;
+    const curveStepRadians = curveStep * Math.PI / 180;
+    const curveRadius = spacing / Math.sin(curveStepRadians);
+    const depthStep = compact ? 67 : 72;
+    const scaleStep = compact ? 0.075 : 0.07;
+    const nextVisible = new Set();
+
+    if (renderedActiveIndex !== activeIndex) {
+      if (renderedActiveIndex >= 0) {
+        cards[renderedActiveIndex].classList.remove("is-active");
+        cards[renderedActiveIndex].removeAttribute("aria-current");
+      }
+      cards[activeIndex].classList.add("is-active");
+      cards[activeIndex].setAttribute("aria-current", "true");
+      renderedActiveIndex = activeIndex;
+    }
+
+    const firstCandidate = Math.floor(carouselPosition - visibleRange);
+    const lastCandidate = Math.ceil(carouselPosition + visibleRange);
+    for (let candidate = firstCandidate; candidate <= lastCandidate; candidate++) {
+      const slot = wrapCarouselIndex(candidate, availableCount);
+      const index = availableIndices[slot];
+      const offset = getCarouselOffset(slot, carouselPosition, availableCount);
+      const distance = Math.abs(offset);
+      if (distance > visibleRange) continue;
+
+      const button = cards[index];
+      nextVisible.add(index);
+      const direction = Math.sign(offset);
+      const arcAngle = distance * curveStepRadians;
+      const wrappedX = direction * curveRadius * Math.sin(arcAngle);
+      const rotation = direction * Math.min(78, Math.atan(distance * 0.64) * 180 / Math.PI);
+      button.style.setProperty("--card-width", `${cardWidth}px`);
+      button.style.setProperty("--carousel-x", `${wrappedX}px`);
+      button.style.setProperty("--carousel-z", `${24 - distance * depthStep - distance ** 2 * 7}px`);
+      button.style.setProperty("--carousel-angle", `${-rotation}deg`);
+      button.style.setProperty("--carousel-scale", String(Math.max(0.68, 1 - distance * scaleStep)));
+      button.style.setProperty("--carousel-layer", String(100 - Math.round(distance * 10)));
+      button.style.opacity = String(Math.max(0, 1 - Math.max(0, distance - 3)));
+      button.style.pointerEvents = distance > 3.8 ? "none" : "auto";
+      button.tabIndex = distance > 3.8 ? -1 : 0;
+      button.setAttribute("aria-hidden", String(distance > 3.8));
+    }
+
+    renderedCarouselCards.forEach((index) => {
+      if (nextVisible.has(index)) return;
+      const button = cards[index];
+      button.style.opacity = "0";
+      button.style.pointerEvents = "none";
+      button.tabIndex = -1;
+      button.setAttribute("aria-hidden", "true");
+      const slot = availableIndices.indexOf(index);
+      if (slot < 0) return;
+      const offset = getCarouselOffset(slot, carouselPosition, availableCount);
+      const distance = Math.abs(offset);
+      button.style.setProperty("--carousel-x", `${Math.sign(offset) * curveRadius * Math.sin(distance * curveStepRadians)}px`);
+    });
+    renderedCarouselCards = nextVisible;
+  }
+
+  function setCarouselPosition(position) {
+    const availableIndices = getAvailableCarouselIndices();
+    if (!availableIndices.length) return;
+    carouselPosition = wrapCarouselIndex(position, availableIndices.length);
+    activeIndex = availableIndices[wrapCarouselIndex(Math.round(carouselPosition), availableIndices.length)];
+    updateCarouselCards();
+  }
+
+  function activateSpreadCard(index, button) {
+    if (carouselAnimating || button.disabled || removedCarouselIndices.has(index)) return;
+    if (index !== activeIndex) {
+      const slot = getAvailableCarouselIndices().indexOf(index);
+      if (slot >= 0) setCarouselPosition(slot);
+      return;
+    }
+    selectSpreadCard(index, button);
+  }
+
+  function getSpreadCardIndexAtPoint(x, y) {
+    const viewportRect = $("#spreadViewport").getBoundingClientRect();
+    if (x < viewportRect.left || x > viewportRect.right || y < viewportRect.top || y > viewportRect.bottom) return -1;
+
+    const candidates = [...renderedCarouselCards]
+      .filter((index) => getComputedStyle(spreadCardElements[index]).opacity > 0.08)
+      .map((index) => ({
+        index,
+        rect: spreadCardElements[index].getBoundingClientRect(),
+        layer: Number.parseInt(getComputedStyle(spreadCardElements[index]).zIndex, 10)
+      }))
+      .filter(({ rect }) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom)
+      .sort((a, b) => b.layer - a.layer);
+    return candidates[0]?.index ?? -1;
+  }
+
+  function renderSpread() {
+    $("#spreadQuestionDisplay").textContent = `“${pendingReadingContext.question}”`;
+    $("#pickCount").textContent = "0 of 3 chosen";
+    $("#pickInstructions").textContent = "Choose a centered card, then rotate the deck to find two more.";
+    activeIndex = 0;
+    carouselPosition = 0;
+    renderedCarouselCards = new Set();
+    removedCarouselIndices = new Set();
+    carouselAnimating = false;
+    renderedActiveIndex = -1;
+
+    const grid = $("#spreadGrid");
+    const buttons = spreadCards.map((card, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "spread-card";
+      button.dataset.spreadIndex = String(index);
+      button.style.setProperty("--deal-delay", `${Math.min(index * 8, 385)}ms`);
+      button.setAttribute("aria-label", `Face-down card at fan position ${card.fanPosition}`);
+      button.setAttribute("aria-pressed", "false");
+
+      const inner = document.createElement("span");
+      inner.className = "spread-card-inner";
+
+      const back = document.createElement("span");
+      back.className = "spread-card-back";
+      back.setAttribute("aria-hidden", "true");
+      const backGlyph = document.createElement("span");
+      backGlyph.textContent = "✧";
+      back.append(backGlyph);
+
+      const front = document.createElement("span");
+      front.className = "spread-card-front";
+      front.setAttribute("aria-hidden", "true");
+      const glyph = document.createElement("span");
+      glyph.className = "spread-glyph";
+      const title = document.createElement("span");
+      title.className = "spread-title";
+      front.append(glyph, title);
+
+      inner.append(back, front);
+      button.append(inner);
+      button.addEventListener("click", (event) => {
+        if (event.detail === 0) activateSpreadCard(index, button);
+      });
+      return button;
+    });
+
+    grid.replaceChildren(...buttons);
+    spreadCardElements = buttons;
+  }
+
+  function enableCarouselInteraction() {
+    const viewport = $("#spreadViewport");
+    let pointer = null;
+    const movementThreshold = 8;
+    const dragSensitivity = 1;
+    const flingDuration = 180;
+    const maxFlingCards = 1.4;
+
+    viewport.addEventListener("pointerdown", (event) => {
+      if (carouselAnimating || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+      const card = event.target.closest(".spread-card");
+      pointer = {
+        id: event.pointerId,
+        startX: event.clientX,
+        lastX: event.clientX,
+        lastTime: performance.now(),
+        startPosition: carouselPosition,
+        velocity: 0,
+        moved: false,
+        cardIndex: card ? Number(card.dataset.spreadIndex) : getSpreadCardIndexAtPoint(event.clientX, event.clientY)
+      };
+      viewport.setPointerCapture(event.pointerId);
+    });
+
+    viewport.addEventListener("pointermove", (event) => {
+      if (!pointer || pointer.id !== event.pointerId) return;
+      const deltaX = event.clientX - pointer.startX;
+      if (Math.abs(deltaX) > movementThreshold) {
+        pointer.moved = true;
+        viewport.classList.add("is-dragging");
+      }
+      if (!pointer.moved) return;
+
+      const spacing = Number.parseFloat(viewport.style.getPropertyValue("--carousel-spacing"));
+      setCarouselPosition(pointer.startPosition - deltaX / spacing * dragSensitivity);
+      const now = performance.now();
+      const elapsed = Math.max(1, now - pointer.lastTime);
+      pointer.velocity = -(event.clientX - pointer.lastX) / elapsed / spacing * dragSensitivity;
+      pointer.lastX = event.clientX;
+      pointer.lastTime = now;
+    });
+
+    const finishPointer = (event, allowTap) => {
+      if (!pointer || pointer.id !== event.pointerId) return;
+      const finished = pointer;
+      pointer = null;
+      viewport.classList.remove("is-dragging");
+      if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+
+      if (finished.moved) {
+        const fling = Math.max(-maxFlingCards, Math.min(maxFlingCards, finished.velocity * flingDuration));
+        setCarouselPosition(Math.round(carouselPosition + fling));
+      } else if (allowTap && finished.cardIndex >= 0) {
+        activateSpreadCard(finished.cardIndex, spreadCardElements[finished.cardIndex]);
+      }
+    };
+
+    viewport.addEventListener("pointerup", (event) => finishPointer(event, true));
+    viewport.addEventListener("pointercancel", (event) => finishPointer(event, false));
+    viewport.addEventListener("click", (event) => {
+      if (event.detail > 0) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, true);
+    viewport.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (carouselAnimating) return;
+      event.preventDefault();
+      setCarouselPosition(carouselPosition + (event.key === "ArrowRight" ? 1 : -1));
+    });
+  }
+
+  function selectSpreadCard(index, button) {
+    if (button.disabled || selectedCards.length >= positions.length) return;
+
+    carouselAnimating = true;
+    const card = { ...spreadCards[index], position: positions[selectedCards.length] };
+    selectedCards.push(card);
+    button.classList.add("is-lifting");
+    button.classList.add("is-selected");
+    setTimeout(() => {
+      button.classList.remove("is-lifting");
+      button.classList.add("is-exiting");
+    }, 700);
+    setTimeout(() => {
+      const availableBeforeRemoval = getAvailableCarouselIndices();
+      const previousSlot = availableBeforeRemoval.indexOf(index);
+      removedCarouselIndices.add(index);
+      const availableAfterRemoval = getAvailableCarouselIndices();
+      if (availableAfterRemoval.length) {
+        const nextSlot = Math.min(Math.max(0, previousSlot), availableAfterRemoval.length - 1);
+        carouselPosition = nextSlot;
+        activeIndex = availableAfterRemoval[nextSlot];
+      }
+      carouselAnimating = false;
+      updateCarouselCards();
+    }, 1380);
+    button.disabled = true;
+    button.setAttribute("aria-pressed", "true");
+    button.setAttribute("aria-label", `Fan position ${card.fanPosition}, ${card.position}: ${card.title}${card.reversed ? ", reversed" : ""}`);
+    button.querySelector(".spread-glyph").textContent = card.glyph;
+    button.querySelector(".spread-title").textContent = card.title;
+    button.querySelector(".spread-card-front").setAttribute("aria-hidden", "false");
+
+    $("#pickCount").textContent = `${selectedCards.length} of 3 chosen`;
+    if (selectedCards.length < positions.length) {
+      $("#pickInstructions").textContent = `Choose ${positions.length - selectedCards.length} more card${positions.length - selectedCards.length === 1 ? "" : "s"}.`;
+      return;
+    }
+
+    all("#spreadGrid .spread-card").forEach((cardButton) => { cardButton.disabled = true; });
+    $("#pickInstructions").textContent = "Your spread is set. Bringing the three cards together…";
+    const cardsInPositionOrder = positions.map((position) => selectedCards.find((selected) => selected.position === position));
+    const reading = createReading(cardsInPositionOrder);
+    currentReading = reading;
+    setTimeout(() => {
+      if (!$("#pickScreen").hidden) renderReading(reading);
+    }, 1420);
   }
 
   function makeCardElement(card, index) {
@@ -1102,17 +1621,29 @@
     }
     const button = $("#drawButton");
     button.disabled = true;
-    currentReading = createReading();
+    pendingReadingContext = { question, topic };
+    spreadCards = makeSpread();
+    selectedCards = [];
     setScreen("loadingScreen");
     setTimeout(() => {
-      renderReading(currentReading);
       button.disabled = false;
+      if (!$("#loadingScreen").hidden) {
+        renderSpread();
+        setScreen("pickScreen");
+        layoutSpreadCards();
+      }
     }, 650);
   });
 
   $("#saveButton").addEventListener("click", saveCurrentReading);
+  enableCarouselInteraction();
+  window.addEventListener("resize", layoutSpreadCards, { passive: true });
   all(".feedback-btn").forEach((button) => button.addEventListener("click", () => setFeedback(button.dataset.feedback)));
   $("#backToForm").addEventListener("click", () => setScreen("formScreen"));
+  $("#changeQuestion").addEventListener("click", () => {
+    setScreen("formScreen");
+    $("#question").focus();
+  });
   $("#anotherButton").addEventListener("click", () => {
     $("#question").value = "";
     $("#charCount").textContent = "0 / 400";

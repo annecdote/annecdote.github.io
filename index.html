@@ -503,7 +503,7 @@
     transform: translateX(-50%);
     overflow: hidden;
     perspective: var(--carousel-perspective, 1000px);
-    perspective-origin: 50% 46%;
+    perspective-origin: 50% 50%;
     touch-action: pan-y;
     cursor: grab;
     user-select: none;
@@ -1102,9 +1102,9 @@
     const cards = all("#spreadGrid .spread-card");
     if (!cards.length || !viewport.clientWidth) return;
     const cardWidth = compact
-      ? Math.max(108, Math.min(158, viewport.clientWidth * 0.4))
-      : Math.max(190, Math.min(256, viewport.clientWidth * 0.22));
-    const spacing = cardWidth * 0.52;
+      ? Math.max(108, Math.min(148, viewport.clientWidth * 0.36))
+      : Math.max(190, Math.min(240, viewport.clientWidth * 0.2));
+    const spacing = cardWidth * 0.54;
     const cardHeight = cardWidth * 1.65;
 
     viewport.style.setProperty("--carousel-perspective", compact ? "1100px" : "1300px");
@@ -1144,12 +1144,9 @@
     const compact = window.matchMedia("(max-width: 700px)").matches;
     const spacing = Number.parseFloat(viewport.style.getPropertyValue("--carousel-spacing"));
     const cardWidth = Number.parseFloat(viewport.style.getPropertyValue("--card-width"));
-    const visibleRange = 4;
-    const curveStep = compact ? 31 : 28;
-    const curveStepRadians = curveStep * Math.PI / 180;
-    const curveRadius = spacing / Math.sin(curveStepRadians);
-    const depthStep = compact ? 67 : 72;
-    const scaleStep = compact ? 0.075 : 0.07;
+    const visibleRange = 3;
+    const depthStep = compact ? 96 : 104;
+    const scaleStep = 0.09;
     const nextVisible = new Set();
 
     if (renderedActiveIndex !== activeIndex) {
@@ -1174,16 +1171,15 @@
       const button = cards[index];
       nextVisible.add(index);
       const direction = Math.sign(offset);
-      const arcAngle = distance * curveStepRadians;
-      const wrappedX = direction * curveRadius * Math.sin(arcAngle);
-      const rotation = direction * Math.min(78, Math.atan(distance * 0.64) * 180 / Math.PI);
+      const horizontalOffset = offset * spacing;
+      const rotation = direction * Math.min(78, 30 + (distance - 1) * 18);
       button.style.setProperty("--card-width", `${cardWidth}px`);
-      button.style.setProperty("--carousel-x", `${wrappedX}px`);
-      button.style.setProperty("--carousel-z", `${24 - distance * depthStep - distance ** 2 * 7}px`);
+      button.style.setProperty("--carousel-x", `${horizontalOffset}px`);
+      button.style.setProperty("--carousel-z", `${30 - distance * depthStep}px`);
       button.style.setProperty("--carousel-angle", `${-rotation}deg`);
       button.style.setProperty("--carousel-scale", String(Math.max(0.68, 1 - distance * scaleStep)));
       button.style.setProperty("--carousel-layer", String(100 - Math.round(distance * 10)));
-      button.style.opacity = String(Math.max(0, 1 - Math.max(0, distance - 3)));
+      button.style.opacity = String(Math.max(0.25, 1 - distance * 0.09));
       button.style.pointerEvents = distance > 3.8 ? "none" : "auto";
       button.tabIndex = distance > 3.8 ? -1 : 0;
       button.setAttribute("aria-hidden", String(distance > 3.8));
@@ -1200,7 +1196,7 @@
       if (slot < 0) return;
       const offset = getCarouselOffset(slot, carouselPosition, availableCount);
       const distance = Math.abs(offset);
-      button.style.setProperty("--carousel-x", `${Math.sign(offset) * curveRadius * Math.sin(distance * curveStepRadians)}px`);
+      button.style.setProperty("--carousel-x", `${offset * spacing}px`);
     });
     renderedCarouselCards = nextVisible;
   }

@@ -481,7 +481,7 @@
   .loading-panel h2 { margin-bottom: 7px; font: 400 25px Georgia, serif; }
   .loading-panel p { color: var(--muted); font-size: 14px; }
 
-  .spread-intro { margin-bottom: 18px; }
+  .spread-intro { margin-bottom: 0; }
   .spread-intro h1 { font-size: clamp(34px, 5vw, 48px); margin: 9px 0 8px; }
   .spread-intro p { margin: 0; color: var(--muted); line-height: 1.6; }
   .spread-progress {
@@ -581,6 +581,7 @@
     padding: 12px 8px;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    transition: visibility 0s linear .18s;
   }
   .spread-card-back {
     justify-content: center;
@@ -600,7 +601,9 @@
   .spread-card-back::before { inset: 6px; }
   .spread-card-back::after { inset: 12px; }
   .spread-card-back span { position: relative; z-index: 1; font: 27px Georgia, serif; }
+  .spread-card:not(.is-active) .spread-card-back span { visibility: hidden; }
   .spread-card-front {
+    visibility: hidden;
     transform: rotateY(180deg);
     justify-content: center;
     gap: 8px;
@@ -610,6 +613,8 @@
     color: var(--plum-dark);
     text-align: center;
   }
+  .spread-card.is-selected .spread-card-back { visibility: hidden; }
+  .spread-card.is-selected .spread-card-front { visibility: visible; }
   .spread-card-front::before {
     content: "";
     position: absolute;
@@ -709,12 +714,14 @@
     .spread-progress span { max-width: 100%; text-align: left; }
     .reading-topline { align-items: flex-start; flex-direction: column; }
     .screen-title-row { flex-direction: column; }
+    #pickScreen .screen-title-row { gap: 10px; }
     .footer-inner { flex-direction: column; gap: 5px; }
     .footer-inner span:last-child { text-align: left; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    .spread-card-back, .spread-card-front { transition-delay: .01ms; }
     .shuffle-card { animation: none; }
   }
 </style>

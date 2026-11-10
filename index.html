@@ -1026,12 +1026,12 @@
     return shuffledDeck.map((card, index) => ({
       ...card,
       fanPosition: index + 1,
-      reversed: randomNumber(100) < 27
+      isReversed: randomNumber(100) < 27
     }));
   }
 
   function essence(card) {
-    return card.reversed ? card.reversed : card.upright;
+    return card.isReversed ? card.reversed : card.upright;
   }
 
   function makeInterpretation(cards, selectedTopic) {
@@ -1040,7 +1040,7 @@
     const bridge = relationship
       ? "notice where care and effort feel mutual, and where a clearer conversation could help"
       : "notice which option fits both your energy and the practical reality of your life";
-    const reversedCount = cards.filter((card) => card.reversed).length;
+    const reversedCount = cards.filter((card) => card.isReversed).length;
 
     const paragraphs = [
       `The story opens with ${essence(past)} in the background. At the center, ${essence(present)} seems to be asking for your attention. The final card offers ${essence(next)} as one possible direction.`,
@@ -1369,7 +1369,7 @@
     }, 1380);
     button.disabled = true;
     button.setAttribute("aria-pressed", "true");
-    button.setAttribute("aria-label", `Fan position ${card.fanPosition}, ${card.position}: ${card.title}${card.reversed ? ", reversed" : ""}`);
+    button.setAttribute("aria-label", `Fan position ${card.fanPosition}, ${card.position}: ${card.title}${card.isReversed ? ", reversed" : ""}`);
     button.querySelector(".spread-glyph").textContent = card.glyph;
     button.querySelector(".spread-title").textContent = card.title;
     button.querySelector(".spread-card-front").setAttribute("aria-hidden", "false");
@@ -1392,16 +1392,16 @@
 
   function makeCardElement(card, index) {
     const article = document.createElement("article");
-    article.className = `drawn-card${card.reversed ? " is-reversed" : ""}`;
+    article.className = `drawn-card${card.isReversed ? " is-reversed" : ""}`;
     article.style.animationDelay = `${index * 0.12}s`;
 
     const face = document.createElement("div");
     face.className = "card-face";
-    face.setAttribute("aria-label", `${card.title}${card.reversed ? ", reversed" : ""}`);
+    face.setAttribute("aria-label", `${card.title}${card.isReversed ? ", reversed" : ""}`);
 
     const number = document.createElement("span");
     number.className = "card-number";
-    number.textContent = card.isMajor ? String(card.number + 1).padStart(2, "0") : String(card.number).padStart(2, "0");
+    number.textContent = String(card.number).padStart(2, "0");
 
     const glyph = document.createElement("span");
     glyph.className = "card-glyph";
@@ -1426,8 +1426,8 @@
     name.textContent = card.title;
 
     const orientation = document.createElement("span");
-    orientation.className = `orientation${card.reversed ? " reversed" : ""}`;
-    orientation.textContent = card.reversed ? "Reversed" : "Upright";
+    orientation.className = `orientation${card.isReversed ? " reversed" : ""}`;
+    orientation.textContent = card.isReversed ? "Reversed" : "Upright";
 
     caption.append(position, name, orientation);
     article.append(face, caption);
@@ -1456,7 +1456,7 @@
       const row = document.createElement("div");
       row.className = "note-row";
       const title = document.createElement("strong");
-      title.textContent = `${card.position}: ${card.title}${card.reversed ? " (reversed)" : ""}`;
+      title.textContent = `${card.position}: ${card.title}${card.isReversed ? " (reversed)" : ""}`;
       const text = document.createElement("span");
       text.textContent = essence(card);
       row.append(title, text);
